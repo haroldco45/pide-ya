@@ -755,7 +755,7 @@ input, textarea, select {
    PANEL ADMIN
 ═══════════════════════════════════════════ */
 #screen-admin {
-  position: absolute;
+  position: fixed;
   inset: 0;
   background: var(--c-bg);
   display: flex;
@@ -763,6 +763,7 @@ input, textarea, select {
   transform: translateX(100%);
   transition: transform .45s cubic-bezier(.77,0,.18,1);
   z-index: 300;
+  overflow: hidden;
 }
 #screen-admin.open { transform: translateX(0); }
 
