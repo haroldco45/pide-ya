@@ -1,0 +1,1874 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0a0a0a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MiProducto">
+<title>MiProducto — Pide Ya</title>
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+
+<style>
+/* ═══════════════════════════════════════════
+   VARIABLES DE CONFIGURACIÓN — EDITAR AQUÍ
+═══════════════════════════════════════════ */
+:root {
+  /* ── PRODUCTO ── */
+  --producto-nombre: "Arepa con Queso Especial";
+  --producto-precio: "$8.500";
+  --producto-descripcion: "Hecha a mano, maíz pelao, queso blanco artesanal. La auténtica del Bajo Cauca.";
+  --producto-imagen: ""; /* URL imagen o dejar vacío para color */
+  --producto-emoji: "🫓";
+
+  /* ── NEGOCIO ── */
+  --negocio-nombre: "Doña Carmen";
+  --whatsapp-numero: "573117700431";
+  --whatsapp-mensaje-prefijo: "¡Hola! Quiero hacer un pedido:";
+
+  /* ── COLORES ── */
+  --c-bg: #0d0b08;
+  --c-surface: #1a1610;
+  --c-accent: #e8a820;
+  --c-accent2: #c47c15;
+  --c-text: #f5ede0;
+  --c-muted: #7a6e60;
+  --c-border: #2e2618;
+  --c-success: #4caf73;
+  --c-danger: #e05252;
+}
+
+/* ═══════════════════════════════════════════
+   RESET & BASE
+═══════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  height: 100%;
+  background: var(--c-bg);
+  color: var(--c-text);
+  font-family: 'DM Sans', sans-serif;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+input, textarea, select {
+  font-family: 'DM Sans', sans-serif;
+  user-select: text;
+}
+
+/* ═══════════════════════════════════════════
+   APP SHELL
+═══════════════════════════════════════════ */
+#app {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ═══════════════════════════════════════════
+   PANTALLA PRODUCTO (Hero)
+═══════════════════════════════════════════ */
+#screen-product {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  transition: transform .5s cubic-bezier(.77,0,.18,1), opacity .4s ease;
+  overflow: hidden;
+}
+#screen-product.slide-out {
+  transform: translateY(-100%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.product-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 30%, rgba(232,168,32,.18) 0%, transparent 65%),
+    radial-gradient(ellipse 50% 80% at 80% 80%, rgba(196,124,21,.10) 0%, transparent 60%),
+    var(--c-bg);
+  z-index: 0;
+}
+.product-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Ccircle cx='1' cy='1' r='.7' fill='%23e8a820' opacity='.06'/%3E%3C/svg%3E");
+  z-index: 0;
+}
+
+.product-content {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 28px 0;
+  gap: 0;
+}
+
+.business-badge {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--c-accent);
+  opacity: .8;
+  margin-bottom: 24px;
+}
+
+.product-visual {
+  width: min(260px, 72vw);
+  height: min(260px, 72vw);
+  border-radius: 50%;
+  background: var(--c-surface);
+  border: 2px solid var(--c-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: min(120px, 30vw);
+  position: relative;
+  margin-bottom: 32px;
+  box-shadow:
+    0 0 0 8px rgba(232,168,32,.05),
+    0 0 0 24px rgba(232,168,32,.03),
+    0 30px 80px rgba(0,0,0,.6);
+  transition: transform .15s ease, box-shadow .15s ease;
+  overflow: hidden;
+  animation: float 4s ease-in-out infinite;
+}
+.product-visual img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+.product-visual:active {
+  animation: none;
+  transform: scale(.94);
+  box-shadow: 0 0 0 4px rgba(232,168,32,.12), 0 10px 40px rgba(0,0,0,.5);
+}
+
+.product-ring {
+  position: absolute;
+  inset: -12px;
+  border-radius: 50%;
+  border: 1.5px dashed rgba(232,168,32,.2);
+  animation: spin 20s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.product-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(2.2rem, 10vw, 3.4rem);
+  letter-spacing: 2px;
+  text-align: center;
+  line-height: 1;
+  color: var(--c-text);
+  margin-bottom: 10px;
+}
+
+.product-desc {
+  font-size: 13px;
+  color: var(--c-muted);
+  text-align: center;
+  line-height: 1.6;
+  max-width: 280px;
+  font-style: italic;
+  margin-bottom: 16px;
+}
+
+.product-price {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(1.6rem, 7vw, 2.4rem);
+  color: var(--c-accent);
+  font-weight: 700;
+  margin-bottom: 0;
+}
+
+.cta-area {
+  position: relative;
+  z-index: 1;
+  padding: 24px 28px 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.btn-pedir {
+  width: 100%;
+  max-width: 340px;
+  padding: 18px 32px;
+  background: var(--c-accent);
+  color: #0d0b08;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.4rem;
+  letter-spacing: 3px;
+  border: none;
+  border-radius: 60px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  box-shadow: 0 8px 32px rgba(232,168,32,.35), 0 2px 8px rgba(0,0,0,.4);
+  transition: transform .1s ease, box-shadow .1s ease;
+  -webkit-tap-highlight-color: transparent;
+  position: relative;
+  overflow: hidden;
+}
+.btn-pedir::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,.2) 0%, transparent 60%);
+  border-radius: inherit;
+}
+.btn-pedir:active {
+  transform: scale(.96);
+  box-shadow: 0 4px 16px rgba(232,168,32,.25);
+}
+.btn-pedir svg { width: 20px; height: 20px; flex-shrink: 0; }
+
+.hint-text {
+  font-size: 11px;
+  color: var(--c-muted);
+  letter-spacing: 1px;
+}
+
+/* ═══════════════════════════════════════════
+   PANTALLA PEDIDO (Sheet)
+═══════════════════════════════════════════ */
+#screen-order {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  transform: translateY(100%);
+  transition: transform .5s cubic-bezier(.77,0,.18,1);
+  background: var(--c-bg);
+}
+#screen-order.slide-in {
+  transform: translateY(0);
+}
+
+.order-header {
+  background: var(--c-surface);
+  border-bottom: 1px solid var(--c-border);
+  padding: 20px 20px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-shrink: 0;
+}
+.btn-back {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--c-border);
+  border: none;
+  color: var(--c-text);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background .15s;
+}
+.btn-back:active { background: var(--c-accent); color: #0d0b08; }
+.order-header-info { flex: 1; }
+.order-header-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.3rem;
+  letter-spacing: 2px;
+  color: var(--c-text);
+  line-height: 1;
+}
+.order-header-sub {
+  font-size: 11px;
+  color: var(--c-accent);
+  margin-top: 2px;
+}
+.order-mini-price {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.1rem;
+  color: var(--c-accent);
+  font-weight: 700;
+}
+
+.order-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 20px 8px;
+  -webkit-overflow-scrolling: touch;
+}
+.order-body::-webkit-scrollbar { display: none; }
+
+/* Cantidad */
+.qty-section {
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: 16px;
+  padding: 16px 20px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.qty-label {
+  font-size: 13px;
+  color: var(--c-muted);
+  font-weight: 500;
+}
+.qty-controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.qty-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1.5px solid var(--c-accent);
+  background: transparent;
+  color: var(--c-accent);
+  font-size: 1.2rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .1s;
+}
+.qty-btn:active { background: var(--c-accent); color: #0d0b08; }
+.qty-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.8rem;
+  color: var(--c-text);
+  min-width: 32px;
+  text-align: center;
+}
+.qty-total {
+  font-family: 'Playfair Display', serif;
+  font-size: 1rem;
+  color: var(--c-accent);
+}
+
+/* Campos */
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.field {
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: 14px;
+  padding: 14px 16px;
+  transition: border-color .2s;
+  position: relative;
+}
+.field:focus-within {
+  border-color: var(--c-accent);
+}
+.field label {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--c-muted);
+  margin-bottom: 6px;
+}
+.field input,
+.field textarea {
+  width: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--c-text);
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.4;
+  resize: none;
+}
+.field input::placeholder,
+.field textarea::placeholder {
+  color: rgba(122,110,96,.5);
+}
+
+/* GPS */
+.gps-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: none;
+  color: var(--c-accent);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0;
+  margin-top: 8px;
+  letter-spacing: .5px;
+  -webkit-tap-highlight-color: transparent;
+}
+.gps-btn svg { width: 16px; height: 16px; flex-shrink: 0; }
+.gps-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  margin-top: 6px;
+}
+.gps-status.ok { background: rgba(76,175,115,.15); color: var(--c-success); }
+.gps-status.err { background: rgba(224,82,82,.15); color: var(--c-danger); }
+
+/* Datos previos */
+.saved-notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(232,168,32,.07);
+  border: 1px solid rgba(232,168,32,.2);
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-size: 12px;
+  color: var(--c-accent);
+  margin-bottom: 16px;
+  cursor: pointer;
+}
+.saved-notice svg { width: 16px; height: 16px; flex-shrink: 0; }
+.saved-notice span { flex: 1; }
+
+/* Política */
+.habeas-notice {
+  font-size: 10px;
+  color: var(--c-muted);
+  text-align: center;
+  line-height: 1.6;
+  padding: 0 8px 4px;
+}
+
+.order-footer {
+  padding: 16px 20px 32px;
+  flex-shrink: 0;
+  background: var(--c-bg);
+  border-top: 1px solid var(--c-border);
+}
+.btn-whatsapp {
+  width: 100%;
+  padding: 18px;
+  background: #25d366;
+  color: #fff;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.3rem;
+  letter-spacing: 3px;
+  border: none;
+  border-radius: 60px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  box-shadow: 0 8px 28px rgba(37,211,102,.3);
+  transition: transform .1s ease, box-shadow .1s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-whatsapp:active {
+  transform: scale(.96);
+  box-shadow: 0 4px 14px rgba(37,211,102,.2);
+}
+.btn-whatsapp svg { width: 22px; height: 22px; }
+
+/* ═══════════════════════════════════════════
+   PANTALLA ÉXITO
+═══════════════════════════════════════════ */
+#screen-success {
+  position: absolute;
+  inset: 0;
+  background: var(--c-bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 32px;
+  text-align: center;
+  transform: scale(.9);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform .4s cubic-bezier(.34,1.56,.64,1), opacity .3s ease;
+}
+#screen-success.show {
+  transform: scale(1);
+  opacity: 1;
+  pointer-events: all;
+}
+.success-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: rgba(76,175,115,.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+.success-icon svg { width: 40px; height: 40px; color: var(--c-success); }
+.success-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 2.2rem;
+  letter-spacing: 3px;
+  color: var(--c-text);
+  margin-bottom: 10px;
+}
+.success-msg {
+  font-size: 14px;
+  color: var(--c-muted);
+  line-height: 1.7;
+  max-width: 280px;
+  margin-bottom: 36px;
+}
+.btn-nuevo {
+  padding: 16px 40px;
+  background: var(--c-surface);
+  border: 1.5px solid var(--c-border);
+  color: var(--c-text);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.1rem;
+  letter-spacing: 2px;
+  border-radius: 60px;
+  cursor: pointer;
+  transition: border-color .2s, color .2s;
+}
+.btn-nuevo:active { border-color: var(--c-accent); color: var(--c-accent); }
+
+/* ═══════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════ */
+#toast {
+  position: fixed;
+  bottom: 90px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: #1e1e1e;
+  color: var(--c-text);
+  font-size: 13px;
+  padding: 10px 20px;
+  border-radius: 30px;
+  border: 1px solid var(--c-border);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .3s ease, transform .3s ease;
+  white-space: nowrap;
+  z-index: 9999;
+  box-shadow: 0 8px 24px rgba(0,0,0,.5);
+}
+#toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ═══════════════════════════════════════════
+   INSTALL PROMPT
+═══════════════════════════════════════════ */
+#install-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--c-surface);
+  border-top: 1px solid var(--c-border);
+  padding: 14px 20px 28px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 100;
+  transform: translateY(100%);
+  transition: transform .4s cubic-bezier(.77,0,.18,1);
+}
+#install-bar.show { transform: translateY(0); }
+#install-bar .install-text { flex: 1; font-size: 13px; color: var(--c-muted); line-height: 1.4; }
+#install-bar .install-text strong { color: var(--c-text); display: block; font-size: 14px; }
+.btn-install {
+  padding: 10px 20px;
+  background: var(--c-accent);
+  color: #0d0b08;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1rem;
+  letter-spacing: 2px;
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.btn-install-close {
+  background: transparent;
+  border: none;
+  color: var(--c-muted);
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 4px;
+}
+
+/* ═══════════════════════════════════════════
+   SCROLLBAR
+═══════════════════════════════════════════ */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--c-border); border-radius: 4px; }
+
+/* ═══════════════════════════════════════════
+   BOTÓN ADMIN FLOTANTE
+═══════════════════════════════════════════ */
+#btn-admin-float {
+  position: fixed;
+  bottom: 24px;
+  right: 20px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(30,28,24,.85);
+  border: 1px solid var(--c-border);
+  color: var(--c-muted);
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  backdrop-filter: blur(8px);
+  transition: border-color .2s, color .2s, transform .15s;
+  -webkit-tap-highlight-color: transparent;
+}
+#btn-admin-float:active { transform: scale(.9); border-color: var(--c-accent); color: var(--c-accent); }
+
+/* ═══════════════════════════════════════════
+   MODAL LOGIN ADMIN
+═══════════════════════════════════════════ */
+#modal-login {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.75);
+  backdrop-filter: blur(6px);
+  z-index: 500;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .3s ease;
+}
+#modal-login.show { opacity: 1; pointer-events: all; }
+.login-sheet {
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: 24px 24px 0 0;
+  padding: 32px 28px 48px;
+  width: 100%;
+  max-width: 480px;
+  transform: translateY(40px);
+  transition: transform .35s cubic-bezier(.77,0,.18,1);
+  text-align: center;
+}
+#modal-login.show .login-sheet { transform: translateY(0); }
+.login-sheet h2 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.6rem;
+  letter-spacing: 3px;
+  color: var(--c-text);
+  margin-bottom: 6px;
+}
+.login-sheet p {
+  font-size: 12px;
+  color: var(--c-muted);
+  margin-bottom: 24px;
+}
+.login-pin-row {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+.pin-digit {
+  width: 52px;
+  height: 60px;
+  background: var(--c-bg);
+  border: 1.5px solid var(--c-border);
+  border-radius: 12px;
+  color: var(--c-text);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 2rem;
+  text-align: center;
+  outline: none;
+  transition: border-color .2s;
+  caret-color: var(--c-accent);
+}
+.pin-digit:focus { border-color: var(--c-accent); }
+.btn-login-ok {
+  width: 100%;
+  padding: 15px;
+  background: var(--c-accent);
+  color: #0d0b08;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.2rem;
+  letter-spacing: 3px;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  margin-bottom: 12px;
+  transition: opacity .2s;
+}
+.btn-login-ok:active { opacity: .8; }
+.btn-login-cancel {
+  background: transparent;
+  border: none;
+  color: var(--c-muted);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 8px;
+}
+.login-error {
+  font-size: 12px;
+  color: var(--c-danger);
+  margin-bottom: 12px;
+  min-height: 18px;
+}
+
+/* ═══════════════════════════════════════════
+   PANEL ADMIN
+═══════════════════════════════════════════ */
+#screen-admin {
+  position: absolute;
+  inset: 0;
+  background: var(--c-bg);
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform .45s cubic-bezier(.77,0,.18,1);
+  z-index: 300;
+}
+#screen-admin.open { transform: translateX(0); }
+
+.admin-header {
+  background: var(--c-surface);
+  border-bottom: 1px solid var(--c-border);
+  padding: 20px 20px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-shrink: 0;
+}
+.admin-header-info { flex: 1; }
+.admin-header-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.3rem;
+  letter-spacing: 3px;
+  color: var(--c-accent);
+}
+.admin-header-sub { font-size: 11px; color: var(--c-muted); margin-top: 2px; }
+
+.admin-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 20px 8px;
+  -webkit-overflow-scrolling: touch;
+}
+.admin-body::-webkit-scrollbar { display: none; }
+
+.admin-section-title {
+  font-size: 10px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--c-accent);
+  margin: 20px 0 10px;
+  padding-left: 2px;
+}
+.admin-section-title:first-child { margin-top: 0; }
+
+.admin-field {
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  transition: border-color .2s;
+}
+.admin-field:focus-within { border-color: var(--c-accent); }
+.admin-field label {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--c-muted);
+  margin-bottom: 6px;
+}
+.admin-field input,
+.admin-field textarea {
+  width: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--c-text);
+  font-size: 15px;
+  line-height: 1.4;
+  resize: none;
+  font-family: 'DM Sans', sans-serif;
+}
+.admin-field input::placeholder,
+.admin-field textarea::placeholder { color: rgba(122,110,96,.4); }
+
+/* Upload imagen */
+.img-upload-area {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 4px;
+}
+.img-upload-preview {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--c-accent);
+  flex-shrink: 0;
+  background: var(--c-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  overflow: hidden;
+  position: relative;
+}
+.img-upload-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  display: none;
+}
+.img-upload-preview img.visible { display: block; }
+.img-upload-preview .placeholder-emoji { transition: opacity .2s; }
+.img-upload-preview.has-img .placeholder-emoji { display: none; }
+.img-upload-actions { display: flex; flex-direction: column; gap: 8px; flex: 1; }
+.btn-upload-file {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: rgba(232,168,32,.1);
+  border: 1.5px dashed rgba(232,168,32,.4);
+  border-radius: 10px;
+  color: var(--c-accent);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background .2s, border-color .2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-upload-file:active { background: rgba(232,168,32,.2); }
+.btn-upload-file svg { width: 16px; height: 16px; flex-shrink: 0; }
+.btn-remove-img {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  color: var(--c-danger);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 0 2px;
+}
+.btn-remove-img.visible { display: flex; }
+.upload-hint { font-size: 10px; color: var(--c-muted); line-height: 1.5; }
+
+/* PIN change */
+.admin-pin-row {
+  display: flex;
+  gap: 8px;
+}
+.admin-pin-row input {
+  flex: 1;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  color: var(--c-text);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.3rem;
+  text-align: center;
+  outline: none;
+  transition: border-color .2s;
+}
+.admin-pin-row input:focus { border-color: var(--c-accent); }
+
+/* Modo activo / pausa */
+.admin-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+}
+.admin-toggle-label { font-size: 14px; color: var(--c-text); }
+.admin-toggle-sub { font-size: 11px; color: var(--c-muted); margin-top: 2px; }
+.toggle-switch {
+  width: 50px;
+  height: 28px;
+  background: var(--c-border);
+  border-radius: 14px;
+  position: relative;
+  cursor: pointer;
+  transition: background .2s;
+  flex-shrink: 0;
+  border: none;
+}
+.toggle-switch.on { background: var(--c-success); }
+.toggle-switch::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform .2s;
+  box-shadow: 0 1px 4px rgba(0,0,0,.3);
+}
+.toggle-switch.on::after { transform: translateX(22px); }
+
+/* Zona peligro */
+.admin-danger-btn {
+  width: 100%;
+  padding: 13px;
+  background: rgba(224,82,82,.1);
+  border: 1px solid rgba(224,82,82,.3);
+  color: var(--c-danger);
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 12px;
+  cursor: pointer;
+  margin-bottom: 8px;
+  transition: background .2s;
+}
+.admin-danger-btn:active { background: rgba(224,82,82,.2); }
+
+.admin-footer {
+  padding: 16px 20px 36px;
+  flex-shrink: 0;
+  border-top: 1px solid var(--c-border);
+  display: flex;
+  gap: 10px;
+}
+.btn-admin-save {
+  flex: 1;
+  padding: 15px;
+  background: var(--c-accent);
+  color: #0d0b08;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.2rem;
+  letter-spacing: 2px;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: opacity .15s;
+}
+.btn-admin-save:active { opacity: .8; }
+.btn-admin-discard {
+  padding: 15px 20px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  color: var(--c-muted);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1rem;
+  letter-spacing: 1px;
+  border-radius: 50px;
+  cursor: pointer;
+}
+
+/* Banner pausa */
+#pause-banner {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  background: var(--c-danger);
+  color: #fff;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px 16px;
+  z-index: 400;
+  display: none;
+  letter-spacing: 1px;
+}
+#pause-banner.show { display: block; }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ══════════ SCREEN 1: PRODUCTO ══════════ -->
+  <div id="screen-product">
+    <div class="product-bg"></div>
+    <div class="product-content">
+      <div class="business-badge" id="badge-negocio">Doña Carmen</div>
+
+      <div class="product-visual" id="btn-visual" role="button" tabindex="0" aria-label="Toca para pedir">
+        <div class="product-ring"></div>
+        <span id="product-emoji">🫓</span>
+        <!-- Si hay imagen se reemplaza el emoji -->
+      </div>
+
+      <div class="product-name" id="product-name-display">Arepa con Queso Especial</div>
+      <div class="product-desc" id="product-desc-display">Hecha a mano, maíz pelao, queso blanco artesanal. La auténtica del Bajo Cauca.</div>
+      <div class="product-price" id="product-price-display">$8.500</div>
+    </div>
+
+    <div class="cta-area">
+      <button class="btn-pedir" id="btn-pedir">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+        PEDIR AHORA
+      </button>
+      <div class="hint-text">Toca el producto o el botón para pedir</div>
+    </div>
+  </div>
+
+  <!-- ══════════ SCREEN 2: PEDIDO ══════════ -->
+  <div id="screen-order">
+    <div class="order-header">
+      <button class="btn-back" id="btn-back" aria-label="Volver">
+        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <div class="order-header-info">
+        <div class="order-header-title" id="order-title">AREPA CON QUESO</div>
+        <div class="order-header-sub">Completa tu pedido</div>
+      </div>
+      <div class="order-mini-price" id="order-total-header">$8.500</div>
+    </div>
+
+    <div class="order-body" id="order-body">
+
+      <!-- Datos guardados -->
+      <div class="saved-notice" id="saved-notice" style="display:none" id="load-saved">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <span>Tenemos tus datos guardados. <strong style="color:var(--c-accent)">¿Usar los mismos?</strong></span>
+      </div>
+
+      <!-- Cantidad -->
+      <div class="qty-section">
+        <div>
+          <div class="qty-label">CANTIDAD</div>
+          <div class="qty-total" id="qty-total-label">$8.500</div>
+        </div>
+        <div class="qty-controls">
+          <button class="qty-btn" id="qty-minus">−</button>
+          <div class="qty-num" id="qty-display">1</div>
+          <button class="qty-btn" id="qty-plus">+</button>
+        </div>
+      </div>
+
+      <!-- Nombre -->
+      <div class="field-group">
+        <div class="field">
+          <label for="f-nombre">👤 Tu nombre</label>
+          <input type="text" id="f-nombre" placeholder="¿Cómo te llamamos?" autocomplete="name">
+        </div>
+
+        <!-- Dirección -->
+        <div class="field">
+          <label for="f-direccion">📍 Dirección de entrega</label>
+          <input type="text" id="f-direccion" placeholder="Calle, barrio, referencia..." autocomplete="street-address">
+          <button class="gps-btn" id="btn-gps">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            Obtener mi ubicación GPS
+          </button>
+          <div class="gps-status" id="gps-status" style="display:none"></div>
+          <input type="hidden" id="f-gps-coords">
+          <input type="hidden" id="f-gps-link">
+        </div>
+
+        <!-- Celular -->
+        <div class="field">
+          <label for="f-celular">📱 Celular</label>
+          <input type="tel" id="f-celular" placeholder="Ej: 3001234567" autocomplete="tel" inputmode="tel">
+        </div>
+
+        <!-- WhatsApp -->
+        <div class="field">
+          <label for="f-whatsapp">💬 WhatsApp (si es diferente)</label>
+          <input type="tel" id="f-whatsapp" placeholder="Dejar vacío si es el mismo" inputmode="tel">
+        </div>
+
+        <!-- Observaciones -->
+        <div class="field">
+          <label for="f-obs">💬 Observaciones</label>
+          <textarea id="f-obs" rows="2" placeholder="Sin picante, sin cebolla, instrucciones especiales..."></textarea>
+        </div>
+      </div>
+
+      <div class="habeas-notice">
+        🔐 Tus datos se usan solo para procesar este pedido. Política de privacidad — Ley 1581/2012 de Habeas Data. Solo el negocio tiene acceso a tu información.
+      </div>
+    </div>
+
+    <div class="order-footer">
+      <button class="btn-whatsapp" id="btn-enviar">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+        ENVIAR PEDIDO
+      </button>
+    </div>
+  </div>
+
+  <!-- ══════════ SCREEN 3: ÉXITO ══════════ -->
+  <div id="screen-success">
+    <div class="success-icon">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+    </div>
+    <div class="success-title">¡PEDIDO ENVIADO!</div>
+    <div class="success-msg">Tu pedido fue enviado por WhatsApp. El negocio te contactará pronto para confirmar. ¡Gracias!</div>
+    <button class="btn-nuevo" id="btn-nuevo">HACER OTRO PEDIDO</button>
+    <div style="margin-top:16px;font-size:10px;color:var(--c-muted)">Desarrollada por Vibras Positivas HM</div>
+  </div>
+</div>
+
+<!-- Banner pausa -->
+<div id="pause-banner">🔴 App en PAUSA — No se están tomando pedidos</div>
+
+<!-- Botón admin flotante (discreto) -->
+<button id="btn-admin-float" title="Admin" aria-label="Administración">⚙</button>
+
+<!-- Modal Login -->
+<div id="modal-login">
+  <div class="login-sheet">
+    <h2>ACCESO ADMIN</h2>
+    <p>Ingresa tu PIN de 4 dígitos</p>
+    <div class="login-pin-row">
+      <input class="pin-digit" type="password" inputmode="numeric" maxlength="1" id="pin0">
+      <input class="pin-digit" type="password" inputmode="numeric" maxlength="1" id="pin1">
+      <input class="pin-digit" type="password" inputmode="numeric" maxlength="1" id="pin2">
+      <input class="pin-digit" type="password" inputmode="numeric" maxlength="1" id="pin3">
+    </div>
+    <div class="login-error" id="login-error"></div>
+    <button class="btn-login-ok" id="btn-login-ok">ENTRAR</button>
+    <button class="btn-login-cancel" id="btn-login-cancel">Cancelar</button>
+  </div>
+</div>
+
+<!-- Panel Admin -->
+<div id="screen-admin">
+  <div class="admin-header">
+    <button class="btn-back" id="btn-admin-back" aria-label="Cerrar admin">
+      <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    <div class="admin-header-info">
+      <div class="admin-header-title">⚙ PANEL ADMIN</div>
+      <div class="admin-header-sub">Solo visible para el dueño del negocio</div>
+    </div>
+  </div>
+
+  <div class="admin-body" id="admin-body">
+
+    <!-- Estado de la app -->
+    <div class="admin-section-title">Estado de la app</div>
+    <div class="admin-toggle-row">
+      <div>
+        <div class="admin-toggle-label">Recibir pedidos</div>
+        <div class="admin-toggle-sub" id="toggle-status-label">La app está activa</div>
+      </div>
+      <button class="toggle-switch on" id="toggle-activo"></button>
+    </div>
+
+    <!-- Datos del negocio -->
+    <div class="admin-section-title">Datos del negocio</div>
+    <div class="admin-field">
+      <label>🏪 Nombre del negocio</label>
+      <input type="text" id="a-negocio" placeholder="Ej: Doña Carmen">
+    </div>
+    <div class="admin-field">
+      <label>📱 WhatsApp (con código país, sin +)</label>
+      <input type="tel" id="a-whatsapp" placeholder="Ej: 573117700431" inputmode="numeric">
+    </div>
+    <div class="admin-field">
+      <label>💬 Prefijo del mensaje WhatsApp</label>
+      <input type="text" id="a-prefijo" placeholder="¡Hola! Quiero hacer un pedido 🛒">
+    </div>
+
+    <!-- Producto -->
+    <div class="admin-section-title">El producto</div>
+    <div class="admin-field">
+      <label>🛍️ Nombre del producto</label>
+      <input type="text" id="a-producto" placeholder="Ej: Arepa con Queso Especial">
+    </div>
+    <div class="admin-field">
+      <label>📝 Descripción corta</label>
+      <textarea id="a-descripcion" rows="2" placeholder="Descripción breve y atractiva..."></textarea>
+    </div>
+    <div class="admin-field">
+      <label>💰 Precio (solo números, sin $ ni puntos)</label>
+      <input type="number" id="a-precio" placeholder="Ej: 8500" inputmode="numeric">
+    </div>
+    <div class="admin-field">
+      <label>😄 Emoji del producto (si no hay imagen)</label>
+      <input type="text" id="a-emoji" placeholder="Ej: 🫓 🍔 🥤">
+    </div>
+    <div class="admin-field">
+      <label>🖼️ Imagen del producto</label>
+      <div class="img-upload-area">
+        <div class="img-upload-preview" id="img-preview-circle">
+          <span class="placeholder-emoji" id="img-placeholder-emoji">🫓</span>
+          <img id="admin-img-preview" alt="Preview">
+        </div>
+        <div class="img-upload-actions">
+          <label class="btn-upload-file" for="a-imagen-file">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            Subir desde galería / cámara
+          </label>
+          <input type="file" id="a-imagen-file" accept="image/*" style="display:none">
+          <button class="btn-remove-img" id="btn-remove-img" type="button">
+            <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            Quitar imagen (usar emoji)
+          </button>
+          <div class="upload-hint">JPG, PNG o WebP. Se guarda en el dispositivo.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Seguridad -->
+    <div class="admin-section-title">Seguridad</div>
+    <div class="admin-field">
+      <label>🔒 Cambiar PIN de acceso (4 dígitos)</label>
+      <div class="admin-pin-row">
+        <input type="password" id="a-pin1" maxlength="1" inputmode="numeric" placeholder="·">
+        <input type="password" id="a-pin2" maxlength="1" inputmode="numeric" placeholder="·">
+        <input type="password" id="a-pin3" maxlength="1" inputmode="numeric" placeholder="·">
+        <input type="password" id="a-pin4" maxlength="1" inputmode="numeric" placeholder="·">
+      </div>
+      <div style="font-size:11px;color:var(--c-muted);margin-top:8px">Dejar vacío para no cambiar el PIN actual</div>
+    </div>
+
+    <!-- Peligro -->
+    <div class="admin-section-title">Zona de reinicio</div>
+    <button class="admin-danger-btn" id="btn-reset-config">🔄 Restaurar configuración original (de fábrica)</button>
+    <button class="admin-danger-btn" id="btn-clear-clients">🗑️ Borrar datos guardados de clientes</button>
+
+    <div style="height:8px"></div>
+    <div style="font-size:10px;color:var(--c-muted);text-align:center;padding-bottom:4px">
+      Desarrollada por Vibras Positivas HM — Derechos de Autor Reservados
+    </div>
+  </div>
+
+  <div class="admin-footer">
+    <button class="btn-admin-discard" id="btn-admin-discard">CANCELAR</button>
+    <button class="btn-admin-save" id="btn-admin-save">💾 GUARDAR</button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<!-- Install bar -->
+<div id="install-bar">
+  <div class="install-text">
+    <strong>Instalar app</strong>
+    Accede más rápido sin abrir el navegador
+  </div>
+  <button class="btn-install" id="btn-install-accept">INSTALAR</button>
+  <button class="btn-install-close" id="btn-install-close">✕</button>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════
+   CONFIGURACIÓN DEFAULT (fábrica)
+═══════════════════════════════════════════ */
+const CONFIG_DEFAULT = {
+  negocio: "Doña Carmen",
+  producto: "Arepa con Queso Especial",
+  descripcion: "Hecha a mano, maíz pelao, queso blanco artesanal. La auténtica del Bajo Cauca.",
+  precio: 8500,
+  moneda: "$",
+  emoji: "🫓",
+  imagenUrl: "",
+  whatsappNumero: "573117700431",
+  whatsappPrefijo: "¡Hola! Quiero hacer un pedido 🛒",
+  pin: "1234",        // ← PIN inicial (cámbialo desde el panel admin)
+  activo: true,       // true = recibe pedidos
+};
+
+const LS_CONFIG = 'vp_admin_config';
+const LS_KEY    = 'vp_cliente_datos';
+
+/* ═══════════════════════════════════════════
+   CARGAR CONFIGURACIÓN
+═══════════════════════════════════════════ */
+function loadConfig() {
+  const raw = localStorage.getItem(LS_CONFIG);
+  if (!raw) return { ...CONFIG_DEFAULT };
+  try {
+    const saved = JSON.parse(raw);
+    return { ...CONFIG_DEFAULT, ...saved };
+  } catch(e) { return { ...CONFIG_DEFAULT }; }
+}
+
+function saveConfig(cfg) {
+  localStorage.setItem(LS_CONFIG, JSON.stringify(cfg));
+}
+
+let CONFIG = loadConfig();
+
+/* ═══════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════ */
+let qty = 1;
+let gpsCoords = null;
+let gpsLink = null;
+let deferredPrompt = null;
+
+function fmt(n) {
+  return CONFIG.moneda + Number(n).toLocaleString('es-CO');
+}
+
+function applyConfig() {
+  document.querySelector('#badge-negocio').textContent = CONFIG.negocio;
+  document.querySelector('#product-name-display').textContent = CONFIG.producto;
+  document.querySelector('#product-desc-display').textContent = CONFIG.descripcion;
+  document.querySelector('#product-price-display').textContent = fmt(CONFIG.precio);
+  document.querySelector('#order-title').textContent = CONFIG.producto.toUpperCase();
+  document.title = CONFIG.producto + " — " + CONFIG.negocio;
+  updateQty();
+
+  // Imagen o emoji
+  const visual = document.querySelector('.product-visual');
+  const existingEmoji = document.querySelector('#product-emoji');
+  const existingImg   = visual.querySelector('img');
+
+  if (CONFIG.imagenUrl) {
+    if (existingEmoji) existingEmoji.style.display = 'none';
+    if (existingImg) {
+      existingImg.src = CONFIG.imagenUrl;
+    } else {
+      const img = document.createElement('img');
+      img.src = CONFIG.imagenUrl;
+      img.alt = CONFIG.producto;
+      visual.appendChild(img);
+    }
+  } else {
+    if (existingImg) existingImg.remove();
+    if (existingEmoji) {
+      existingEmoji.style.display = '';
+      existingEmoji.textContent = CONFIG.emoji;
+    }
+  }
+
+  // Estado activo/pausa
+  const banner = document.querySelector('#pause-banner');
+  const btnPedir = document.querySelector('#btn-pedir');
+  const visual2 = document.querySelector('#btn-visual');
+  if (!CONFIG.activo) {
+    banner.classList.add('show');
+    btnPedir.style.opacity = '.4';
+    btnPedir.style.pointerEvents = 'none';
+    visual2.style.pointerEvents = 'none';
+  } else {
+    banner.classList.remove('show');
+    btnPedir.style.opacity = '';
+    btnPedir.style.pointerEvents = '';
+    visual2.style.pointerEvents = '';
+  }
+}
+
+function updateQty() {
+  document.querySelector('#qty-display').textContent = qty;
+  const total = fmt(CONFIG.precio * qty);
+  document.querySelector('#qty-total-label').textContent = total;
+  document.querySelector('#order-total-header').textContent = total;
+}
+
+/* ═══════════════════════════════════════════
+   NAVEGACIÓN CLIENTE
+═══════════════════════════════════════════ */
+function goToOrder() {
+  if (!CONFIG.activo) { showToast('⏸️ El negocio no está tomando pedidos ahora'); return; }
+  document.querySelector('#screen-product').classList.add('slide-out');
+  document.querySelector('#screen-order').classList.add('slide-in');
+  checkSavedData();
+}
+
+function goToProduct() {
+  document.querySelector('#screen-product').classList.remove('slide-out');
+  document.querySelector('#screen-order').classList.remove('slide-in');
+}
+
+function goToSuccess() {
+  document.querySelector('#screen-success').classList.add('show');
+}
+
+function goBackFromSuccess() {
+  document.querySelector('#screen-success').classList.remove('show');
+  qty = 1;
+  updateQty();
+  goToProduct();
+}
+
+/* ═══════════════════════════════════════════
+   DATOS CLIENTE (localStorage)
+═══════════════════════════════════════════ */
+function saveData() {
+  const data = {
+    nombre: document.querySelector('#f-nombre').value,
+    direccion: document.querySelector('#f-direccion').value,
+    celular: document.querySelector('#f-celular').value,
+    whatsapp: document.querySelector('#f-whatsapp').value,
+    obs: document.querySelector('#f-obs').value,
+  };
+  localStorage.setItem(LS_KEY, JSON.stringify(data));
+}
+
+function loadData() {
+  const raw = localStorage.getItem(LS_KEY);
+  if (!raw) return null;
+  try { return JSON.parse(raw); } catch(e) { return null; }
+}
+
+function fillForm(data) {
+  if (!data) return;
+  if (data.nombre)   document.querySelector('#f-nombre').value = data.nombre;
+  if (data.direccion) document.querySelector('#f-direccion').value = data.direccion;
+  if (data.celular)  document.querySelector('#f-celular').value = data.celular;
+  if (data.whatsapp) document.querySelector('#f-whatsapp').value = data.whatsapp;
+  if (data.obs)      document.querySelector('#f-obs').value = data.obs;
+}
+
+function checkSavedData() {
+  const data = loadData();
+  const notice = document.querySelector('#saved-notice');
+  if (data && data.nombre) {
+    notice.style.display = 'flex';
+  } else {
+    notice.style.display = 'none';
+  }
+}
+
+/* ═══════════════════════════════════════════
+   GPS
+═══════════════════════════════════════════ */
+function getGPS() {
+  const btn = document.querySelector('#btn-gps');
+  const status = document.querySelector('#gps-status');
+  btn.textContent = '⏳ Obteniendo ubicación...';
+  btn.style.pointerEvents = 'none';
+
+  if (!navigator.geolocation) {
+    showGPSError('GPS no disponible en este dispositivo');
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      gpsCoords = `${pos.coords.latitude.toFixed(6)}, ${pos.coords.longitude.toFixed(6)}`;
+      gpsLink = `https://www.google.com/maps?q=${pos.coords.latitude},${pos.coords.longitude}`;
+      document.querySelector('#f-gps-coords').value = gpsCoords;
+      document.querySelector('#f-gps-link').value = gpsLink;
+      status.className = 'gps-status ok';
+      status.textContent = '✓ Ubicación capturada';
+      status.style.display = 'inline-flex';
+      btn.innerHTML = `<svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg> Actualizar ubicación`;
+      btn.style.pointerEvents = 'auto';
+      showToast('📍 Ubicación capturada');
+    },
+    err => {
+      showGPSError('No se pudo obtener la ubicación. Intenta de nuevo.');
+      btn.innerHTML = `<svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/></svg> Reintentar GPS`;
+      btn.style.pointerEvents = 'auto';
+    },
+    { enableHighAccuracy: true, timeout: 10000 }
+  );
+}
+
+function showGPSError(msg) {
+  const status = document.querySelector('#gps-status');
+  status.className = 'gps-status err';
+  status.textContent = msg;
+  status.style.display = 'inline-flex';
+  document.querySelector('#btn-gps').style.pointerEvents = 'auto';
+}
+
+/* ═══════════════════════════════════════════
+   ENVÍO WHATSAPP
+═══════════════════════════════════════════ */
+function enviarPedido() {
+  const nombre   = document.querySelector('#f-nombre').value.trim();
+  const direccion = document.querySelector('#f-direccion').value.trim();
+  const celular  = document.querySelector('#f-celular').value.trim();
+
+  if (!nombre)    { showToast('⚠️ Escribe tu nombre');    shake('#f-nombre');    return; }
+  if (!direccion) { showToast('⚠️ Escribe tu dirección'); shake('#f-direccion'); return; }
+  if (!celular)   { showToast('⚠️ Escribe tu celular');   shake('#f-celular');   return; }
+
+  const whatsapp = document.querySelector('#f-whatsapp').value.trim() || celular;
+  const obs = document.querySelector('#f-obs').value.trim();
+  const total = fmt(CONFIG.precio * qty);
+
+  saveData();
+
+  let msg = CONFIG.whatsappPrefijo + '\n\n';
+  msg += `🛍️ *PRODUCTO:* ${CONFIG.producto}\n`;
+  msg += `🔢 *CANTIDAD:* ${qty}\n`;
+  msg += `💰 *TOTAL:* ${total}\n\n`;
+  msg += `👤 *NOMBRE:* ${nombre}\n`;
+  msg += `📍 *DIRECCIÓN:* ${direccion}\n`;
+  msg += `📱 *CELULAR:* ${celular}\n`;
+  msg += `💬 *WHATSAPP:* ${whatsapp}\n`;
+  if (obs) msg += `📝 *OBSERVACIONES:* ${obs}\n`;
+  if (gpsLink) msg += `\n📌 *UBICACIÓN GPS:*\n${gpsLink}\n`;
+  msg += `\n_Pedido enviado desde la app_`;
+
+  const url = `https://wa.me/${CONFIG.whatsappNumero}?text=${encodeURIComponent(msg)}`;
+  window.open(url, '_blank');
+
+  setTimeout(() => goToSuccess(), 800);
+}
+
+/* ═══════════════════════════════════════════
+   PANEL ADMIN — LOGIN
+═══════════════════════════════════════════ */
+function openLogin() {
+  // Limpiar digits
+  ['pin0','pin1','pin2','pin3'].forEach(id => document.querySelector('#'+id).value = '');
+  document.querySelector('#login-error').textContent = '';
+  document.querySelector('#modal-login').classList.add('show');
+  setTimeout(() => document.querySelector('#pin0').focus(), 350);
+}
+
+function closeLogin() {
+  document.querySelector('#modal-login').classList.remove('show');
+}
+
+function checkLogin() {
+  const pin = ['pin0','pin1','pin2','pin3'].map(id => document.querySelector('#'+id).value).join('');
+  if (pin === CONFIG.pin) {
+    closeLogin();
+    openAdmin();
+  } else {
+    document.querySelector('#login-error').textContent = 'PIN incorrecto. Intenta de nuevo.';
+    ['pin0','pin1','pin2','pin3'].forEach(id => document.querySelector('#'+id).value = '');
+    document.querySelector('#pin0').focus();
+    // Vibración si disponible
+    if (navigator.vibrate) navigator.vibrate([100,50,100]);
+  }
+}
+
+// Auto-avance entre dígitos PIN login
+['pin0','pin1','pin2','pin3'].forEach((id, i, arr) => {
+  const el = document.querySelector('#' + id);
+  el.addEventListener('input', () => {
+    el.value = el.value.replace(/\D/g,'').slice(-1);
+    if (el.value && i < arr.length - 1) document.querySelector('#' + arr[i+1]).focus();
+    if (el.value && i === arr.length - 1) checkLogin();
+  });
+  el.addEventListener('keydown', e => {
+    if (e.key === 'Backspace' && !el.value && i > 0) document.querySelector('#' + arr[i-1]).focus();
+  });
+});
+
+/* ═══════════════════════════════════════════
+   PANEL ADMIN — PANEL PRINCIPAL
+═══════════════════════════════════════════ */
+function openAdmin() {
+  // Cargar valores actuales en el formulario admin
+  document.querySelector('#a-negocio').value    = CONFIG.negocio;
+  document.querySelector('#a-whatsapp').value   = CONFIG.whatsappNumero;
+  document.querySelector('#a-prefijo').value    = CONFIG.whatsappPrefijo;
+  document.querySelector('#a-producto').value   = CONFIG.producto;
+  document.querySelector('#a-descripcion').value = CONFIG.descripcion;
+  document.querySelector('#a-precio').value     = CONFIG.precio;
+  document.querySelector('#a-emoji').value      = CONFIG.emoji;
+  document.querySelector('#a-pin1').value       = '';
+  document.querySelector('#a-pin2').value       = '';
+  document.querySelector('#a-pin3').value       = '';
+  document.querySelector('#a-pin4').value       = '';
+
+  // Actualizar placeholder emoji en el preview
+  document.querySelector('#img-placeholder-emoji').textContent = CONFIG.emoji || '🛍️';
+
+  // Preview imagen
+  refreshAdminImgPreview(CONFIG.imagenUrl);
+
+  // Toggle activo
+  const toggle = document.querySelector('#toggle-activo');
+  if (CONFIG.activo) {
+    toggle.classList.add('on');
+    document.querySelector('#toggle-status-label').textContent = 'La app está activa ✅';
+  } else {
+    toggle.classList.remove('on');
+    document.querySelector('#toggle-status-label').textContent = 'App en pausa 🔴';
+  }
+
+  document.querySelector('#screen-admin').classList.add('open');
+  // Reset pending image
+  pendingImageBase64 = undefined;
+  document.querySelector('#a-imagen-file').value = '';
+  // Ocultar botón flotante mientras admin está abierto
+  document.querySelector('#btn-admin-float').style.display = 'none';
+}
+
+function closeAdmin() {
+  document.querySelector('#screen-admin').classList.remove('open');
+  document.querySelector('#btn-admin-float').style.display = '';
+  pendingImageBase64 = undefined;
+}
+
+function refreshAdminImgPreview(src) {
+  const circle = document.querySelector('#img-preview-circle');
+  const img    = document.querySelector('#admin-img-preview');
+  const removeBtn = document.querySelector('#btn-remove-img');
+  const placeholder = document.querySelector('#img-placeholder-emoji');
+
+  if (src) {
+    img.src = src;
+    img.classList.add('visible');
+    circle.classList.add('has-img');
+    removeBtn.classList.add('visible');
+  } else {
+    img.src = '';
+    img.classList.remove('visible');
+    circle.classList.remove('has-img');
+    removeBtn.classList.remove('visible');
+    // Mostrar emoji actual
+    placeholder.textContent = document.querySelector('#a-emoji').value.trim() || CONFIG.emoji || '🛍️';
+  }
+}
+
+function saveAdmin() {
+  const negocio  = document.querySelector('#a-negocio').value.trim();
+  const producto = document.querySelector('#a-producto').value.trim();
+  const precio   = parseFloat(document.querySelector('#a-precio').value);
+
+  if (!negocio)       { showAdminToast('⚠️ El nombre del negocio es obligatorio'); return; }
+  if (!producto)      { showAdminToast('⚠️ El nombre del producto es obligatorio'); return; }
+  if (!precio || precio <= 0) { showAdminToast('⚠️ El precio debe ser mayor que 0'); return; }
+
+  // PIN nuevo
+  const pinDigits = [
+    document.querySelector('#a-pin1').value,
+    document.querySelector('#a-pin2').value,
+    document.querySelector('#a-pin3').value,
+    document.querySelector('#a-pin4').value,
+  ];
+  const newPin = pinDigits.join('');
+  if (newPin && newPin.length < 4) { showAdminToast('⚠️ El PIN debe tener exactamente 4 dígitos'); return; }
+
+  CONFIG.negocio         = negocio;
+  CONFIG.producto        = producto;
+  CONFIG.descripcion     = document.querySelector('#a-descripcion').value.trim();
+  CONFIG.precio          = precio;
+  CONFIG.emoji           = document.querySelector('#a-emoji').value.trim() || '🛍️';
+  CONFIG.imagenUrl       = pendingImageBase64 !== undefined ? pendingImageBase64 : CONFIG.imagenUrl;
+  CONFIG.whatsappNumero  = document.querySelector('#a-whatsapp').value.trim();
+  CONFIG.whatsappPrefijo = document.querySelector('#a-prefijo').value.trim();
+  if (newPin) CONFIG.pin = newPin;
+
+  saveConfig(CONFIG);
+  applyConfig();
+  closeAdmin();
+  showToast('✅ Cambios guardados correctamente');
+}
+
+function showAdminToast(msg) {
+  showToast(msg);
+}
+
+// Toggle activo
+document.querySelector('#toggle-activo').addEventListener('click', function() {
+  this.classList.toggle('on');
+  const isOn = this.classList.contains('on');
+  CONFIG.activo = isOn;
+  document.querySelector('#toggle-status-label').textContent = isOn ? 'La app está activa ✅' : 'App en pausa 🔴';
+});
+
+// Upload imagen desde archivo
+let pendingImageBase64 = undefined; // undefined = no cambió, null = quitó, string = nueva imagen
+
+document.querySelector('#a-imagen-file').addEventListener('change', function() {
+  const file = this.files[0];
+  if (!file) return;
+
+  // Validar tamaño (máx 3MB)
+  if (file.size > 3 * 1024 * 1024) {
+    showToast('⚠️ La imagen es muy grande. Máx 3MB.');
+    this.value = '';
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    pendingImageBase64 = e.target.result; // base64 data URL
+    refreshAdminImgPreview(pendingImageBase64);
+    showToast('✅ Imagen lista. Toca GUARDAR para aplicar.');
+  };
+  reader.readAsDataURL(file);
+});
+
+// Quitar imagen
+document.querySelector('#btn-remove-img').addEventListener('click', () => {
+  pendingImageBase64 = null; // null = borrar imagen
+  document.querySelector('#a-imagen-file').value = '';
+  refreshAdminImgPreview(null);
+  showToast('🗑️ Imagen quitada. Toca GUARDAR para aplicar.');
+});
+
+// Actualizar emoji en preview al escribir
+document.querySelector('#a-emoji').addEventListener('input', function() {
+  const circle = document.querySelector('#img-preview-circle');
+  if (!circle.classList.contains('has-img')) {
+    document.querySelector('#img-placeholder-emoji').textContent = this.value.trim() || '🛍️';
+  }
+});
+
+// Auto-avance PIN admin
+['a-pin1','a-pin2','a-pin3','a-pin4'].forEach((id, i, arr) => {
+  const el = document.querySelector('#'+id);
+  el.addEventListener('input', () => {
+    el.value = el.value.replace(/\D/g,'').slice(-1);
+    if (el.value && i < arr.length - 1) document.querySelector('#'+arr[i+1]).focus();
+  });
+  el.addEventListener('keydown', e => {
+    if (e.key === 'Backspace' && !el.value && i > 0) document.querySelector('#'+arr[i-1]).focus();
+  });
+});
+
+// Reset config fábrica
+document.querySelector('#btn-reset-config').addEventListener('click', () => {
+  if (confirm('¿Seguro que quieres restaurar todos los datos a los valores de fábrica? Esto borrará tu configuración guardada.')) {
+    localStorage.removeItem(LS_CONFIG);
+    CONFIG = { ...CONFIG_DEFAULT };
+    applyConfig();
+    closeAdmin();
+    showToast('🔄 Configuración restaurada');
+  }
+});
+
+// Borrar datos clientes
+document.querySelector('#btn-clear-clients').addEventListener('click', () => {
+  if (confirm('¿Borrar los datos guardados de todos los clientes en este dispositivo?')) {
+    localStorage.removeItem(LS_KEY);
+    showToast('🗑️ Datos de clientes eliminados');
+  }
+});
+
+/* ═══════════════════════════════════════════
+   UI HELPERS
+═══════════════════════════════════════════ */
+function showToast(msg) {
+  const t = document.querySelector('#toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+function shake(selector) {
+  const el = document.querySelector(selector);
+  if (!el) return;
+  el.parentElement.style.borderColor = 'var(--c-danger)';
+  setTimeout(() => { el.parentElement.style.borderColor = ''; }, 1500);
+}
+
+/* ═══════════════════════════════════════════
+   PWA INSTALL PROMPT
+═══════════════════════════════════════════ */
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  setTimeout(() => {
+    document.querySelector('#install-bar').classList.add('show');
+  }, 3000);
+});
+
+document.querySelector('#btn-install-accept').addEventListener('click', async () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  deferredPrompt = null;
+  document.querySelector('#install-bar').classList.remove('show');
+  if (outcome === 'accepted') showToast('✓ App instalada');
+});
+
+document.querySelector('#btn-install-close').addEventListener('click', () => {
+  document.querySelector('#install-bar').classList.remove('show');
+});
+
+/* ═══════════════════════════════════════════
+   EVENT LISTENERS
+═══════════════════════════════════════════ */
+document.querySelector('#btn-pedir').addEventListener('click', goToOrder);
+document.querySelector('#btn-visual').addEventListener('click', goToOrder);
+document.querySelector('#btn-visual').addEventListener('keydown', e => {
+  if (e.key === 'Enter' || e.key === ' ') goToOrder();
+});
+document.querySelector('#btn-back').addEventListener('click', goToProduct);
+document.querySelector('#btn-enviar').addEventListener('click', enviarPedido);
+document.querySelector('#btn-nuevo').addEventListener('click', goBackFromSuccess);
+
+document.querySelector('#qty-plus').addEventListener('click', () => {
+  qty = Math.min(qty + 1, 99); updateQty();
+});
+document.querySelector('#qty-minus').addEventListener('click', () => {
+  qty = Math.max(qty - 1, 1); updateQty();
+});
+
+document.querySelector('#btn-gps').addEventListener('click', getGPS);
+
+document.querySelector('#saved-notice').addEventListener('click', () => {
+  fillForm(loadData());
+  document.querySelector('#saved-notice').innerHTML = `
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+    <span>¡Datos cargados! Verifica que todo esté correcto.</span>
+  `;
+  document.querySelector('#saved-notice').style.cursor = 'default';
+});
+
+// Admin
+document.querySelector('#btn-admin-float').addEventListener('click', openLogin);
+document.querySelector('#btn-login-ok').addEventListener('click', checkLogin);
+document.querySelector('#btn-login-cancel').addEventListener('click', closeLogin);
+document.querySelector('#modal-login').addEventListener('click', e => {
+  if (e.target === document.querySelector('#modal-login')) closeLogin();
+});
+document.querySelector('#btn-admin-back').addEventListener('click', closeAdmin);
+document.querySelector('#btn-admin-discard').addEventListener('click', closeAdmin);
+document.querySelector('#btn-admin-save').addEventListener('click', saveAdmin);
+
+/* ═══════════════════════════════════════════
+   SERVICE WORKER
+═══════════════════════════════════════════ */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
+
+/* ═══════════════════════════════════════════
+   ARRANQUE
+═══════════════════════════════════════════ */
+applyConfig();
+</script>
+</body>
+</html>
